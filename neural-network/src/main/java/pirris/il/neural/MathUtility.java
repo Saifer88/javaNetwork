@@ -1,5 +1,7 @@
 package pirris.il.neural;
 
+import java.util.Random;
+
 public class MathUtility {
 
 
@@ -14,5 +16,10 @@ public class MathUtility {
 
     public static float randomFloatGenerator(){
         return Float.valueOf((float)Math.random());
+    }
+
+    public static int randomIntGenerator(){
+        Random random = new Random();
+        return random.nextInt();
     }
 }

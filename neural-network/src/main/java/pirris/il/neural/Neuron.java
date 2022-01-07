@@ -4,15 +4,19 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 @Data
+@Slf4j
 public class Neuron {
 
+    int id;
     List<Neuron> previousLayer;
     //List<Neuron> nextLayer;
     /* Neurons on witch this neuron is linked with relatives weight */
     Map<Neuron, Float> nextLayerMap;
     int indexInLayer;
+    String label;
 
     //List<Float> forwardWeights;
     Float bias;
@@ -20,9 +24,11 @@ public class Neuron {
     Float outputCache; /* 0....1 range */
     Float error;
 
-    public Neuron(int indexInLayer) {
+    public Neuron(int indexInLayer, String label) {
         this.bias = MathUtility.randomFloatGenerator();
         this.indexInLayer = indexInLayer;
+        this.label = label;
+        this.id = MathUtility.randomIntGenerator();
 
         /*
         if (previousLayer != null) {
@@ -44,12 +50,18 @@ public class Neuron {
             .forEach(neuron -> nextLayerMap.put(neuron, MathUtility.randomFloatGenerator()));
     }
 
+    public void setupPreviousLayer(List<Neuron> previousLayer) { // not in input neuron
+        this.previousLayer = previousLayer;
+    } 
+
 
     public void updateOutput(float newOutput){
         this.outputCache = newOutput;
     }
 
     public Float generateOutput(){
+        log.info("Generating output on...");
+        this.displayState();
         float sum = 0;
         if (outputCache == null) {
             if (previousLayer != null) {
@@ -91,6 +103,33 @@ public class Neuron {
         this.error =  MathUtility.sig_p(this.getOutputCache()) * this.error;
     }
 
+    public void applyLearningRate(float learningRate) {
+        this.bias += this.error * learningRate;
 
+        this.nextLayerMap
+            .entrySet()
+            .stream()
+            .forEach((neuronEntrySet) -> neuronEntrySet.setValue(neuronEntrySet.getKey().getError() * this.getOutputCache() * learningRate));
+    }
+
+
+    public void displayState() {
+        log.info("---- Neuron state -----");
+        log.info("id: {}", this.id);
+        log.info("{} index: {}",this.label,  this.indexInLayer);
+        log.info("bias: {}", this.bias);
+        log.info("output: {}", this.outputCache);
+        log.info("error: {}", this.error);
+
+        if(nextLayerMap != null) {
+            log.info("weights forwards");
+            this.nextLayerMap.forEach((neuron, weight) -> log.info("Neuron {} Weight {}", neuron.getIndexInLayer(), weight));
+        }
+    }
+
+    @Override
+    public int hashCode(){
+        return this.id;
+    }
 
 }
